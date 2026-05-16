@@ -1,0 +1,23 @@
+{
+	"name": "Snake",
+	"description": "A Google Chrome extension that allows you to play snake on your desktop",
+	"version": "1.0",
+	"manifest_version": 3,
+	"permissions": [
+		"contextMenus",
+		"notifications",
+		"storage",
+		"tabs"
+	],
+	"action": {
+	  "default_popup": "popup.html",
+	  "default_icon": {
+		"48": "/assets/icons/48.png",
+		"128": "/assets/icons/128.png"
+	  }
+	},
+	"icons": {
+		"48": "/assets/icons/48.png",
+		"128": "/assets/icons/128.png"
+	}
+}
