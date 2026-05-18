@@ -1,109 +1,132 @@
-var canvas = document.getElementById('game');
-var context = canvas.getContext('2d');
+var game = {
+	canvas: document.getElementById('game'),
+	context: document.getElementById('game').getContext('2d'),
 
-var gameStarted = false;
-var paused = false;
+	gameStarted: false,
+	paused: false,
 
-var start = false;
-var SpeederCost = 2;
-var PFgold = 5;
-var InvinciC = 10;
-var Icharge = 0;
-var score = 0;
-var sCount = 0;
+	start: false,
+	SpeederCost: 2,
+	PFgold: 5,
+	InvinciC: 10,
+	Icharge: 0,
+	score: 0,
+	sCount: 0,
 
-var startS = 5;
+	startS: 5,
 
-var speedOfSnake = 5;
-var originalSpeed = speedOfSnake;
+	speedOfSnake: 5,
+	originalSpeed: 5,
 
-var gold = 0;
-var goldCount = 0;
+	gold: 0,
+	goldCount: 0,
 
-var grid = 16;
-var count = 0;
+	grid: 16,
+	count: 0,
 
-var MAX_SNAKE_LENGTH = (canvas.width / grid) * (canvas.height / grid);
+	MAX_SNAKE_LENGTH: 0,
 
-var PortalColorIn = ['blue', 'purple', 'cyan', 'gray'];
-var PortalColorOut = ['orange', 'purple', 'cyan', 'gray'];
-var SpeederColor = ['black', 'white', 'black', 'white'];
+	PortalColorIn: ['blue', 'purple', 'cyan', 'gray'],
+	PortalColorOut: ['orange', 'purple', 'cyan', 'gray'],
+	SpeederColor: ['black', 'white', 'black', 'white'],
 
-var snake = {
-	x: grid * 10,
-	y: grid * 10,
-	sx: grid - 1,
-	sy: grid - 1,
+	snake: {
+		x: 160,
+		y: 160,
+		sx: 15,
+		sy: 15,
+		dx: 16,
+		dy: 0,
+		cells: [],
+		maxCells: 5
+	},
 
-	dx: grid,
-	dy: 0,
+	invincible: {
+		is: false,
+		frames: 0
+	},
 
-	cells: [],
+	apple: {},
+	goldO: {},
+	portalIN: {},
+	portalOut: {},
+	Speeder: {},
+	invi: {},
 
-	maxCells: startS
+	controls: {
+		menu: ['escape'],
+		start: ['enter'],
+		pause: ['p'],
+		reset: ['r'],
+		left: ['arrowleft', 'a'],
+		up: ['arrowup', 'w'],
+		right: ['arrowright', 'd'],
+		down: ['arrowdown', 's']
+	}
 };
 
-var invincible = {
-	is: false,
-	frames: 0
-};
+// derived constant
+game.MAX_SNAKE_LENGTH = (game.canvas.width / game.grid) * (game.canvas.height / game.grid);
 
-var apple = {
-	x: getRandomInt(0, canvas.width / grid) * grid,
-	y: getRandomInt(0, canvas.height / grid) * grid,
-	sx: grid - 1,
-	sy: grid - 1
-};
-
-var goldO = {
-	x: getRandomInt(0, canvas.width / grid) * grid,
-	y: getRandomInt(0, canvas.height / grid) * grid,
-	sx: grid - 1,
-	sy: grid - 1
-};
-
-var portalIN = {
-	x: getRandomInt(0, canvas.width / grid) * grid,
-	y: getRandomInt(0, canvas.height / grid) * grid,
-	sx: grid - 1,
-	sy: grid - 1
-};
-
-var portalOut = {
-	x: getRandomInt(0, canvas.width / grid) * grid,
-	y: getRandomInt(0, canvas.height / grid) * grid,
-	sx: grid - 1,
-	sy: grid - 1
-};
-
-var Speeder = {
-	x: getRandomInt(0, canvas.width / grid) * grid,
-	y: getRandomInt(0, canvas.height / grid) * grid,
-	sx: grid - 1,
-	sy: grid - 1
-};
-
-var invi = {
-	x: getRandomInt(0, canvas.width / grid) * grid,
-	y: getRandomInt(0, canvas.height / grid) * grid,
-	sx: grid - 1,
-	sy: grid - 1
-};
-
+// helpers
 function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function initEntities() {
+	game.apple = {
+		x: getRandomInt(0, game.canvas.width / game.grid) * game.grid,
+		y: getRandomInt(0, game.canvas.height / game.grid) * game.grid,
+		sx: game.grid - 1,
+		sy: game.grid - 1
+	};
+
+	game.goldO = {
+		x: getRandomInt(0, game.canvas.width / game.grid) * game.grid,
+		y: getRandomInt(0, game.canvas.height / game.grid) * game.grid,
+		sx: game.grid - 1,
+		sy: game.grid - 1
+	};
+
+	game.portalIN = {
+		x: getRandomInt(0, game.canvas.width / game.grid) * game.grid,
+		y: getRandomInt(0, game.canvas.height / game.grid) * game.grid,
+		sx: game.grid - 1,
+		sy: game.grid - 1
+	};
+
+	game.portalOut = {
+		x: getRandomInt(0, game.canvas.width / game.grid) * game.grid,
+		y: getRandomInt(0, game.canvas.height / game.grid) * game.grid,
+		sx: game.grid - 1,
+		sy: game.grid - 1
+	};
+
+	game.Speeder = {
+		x: getRandomInt(0, game.canvas.width / game.grid) * game.grid,
+		y: getRandomInt(0, game.canvas.height / game.grid) * game.grid,
+		sx: game.grid - 1,
+		sy: game.grid - 1
+	};
+
+	game.invi = {
+		x: getRandomInt(0, game.canvas.width / game.grid) * game.grid,
+		y: getRandomInt(0, game.canvas.height / game.grid) * game.grid,
+		sx: game.grid - 1,
+		sy: game.grid - 1
+	};
+}
+
 function drawCenteredText(text, y, size, color) {
-	context.fillStyle = color;
-	context.font = size + "px Arial";
-	context.textAlign = "center";
-	context.fillText(text, canvas.width / 2, y);
+	game.context.fillStyle = color;
+	game.context.font = size + "px Arial";
+	game.context.textAlign = "center";
+	game.context.fillText(text, game.canvas.width / 2, y);
 }
 
 function drawStartScreen() {
-	context.fillStyle = "black";
-	context.fillRect(0, 0, canvas.width, canvas.height);
+	game.context.fillStyle = "black";
+	game.context.fillRect(0, 0, game.canvas.width, game.canvas.height);
 
 	drawCenteredText("SNAKE", 140, 40, "lime");
 	drawCenteredText("Press ENTER to Start", 210, 24, "white");
@@ -113,8 +136,8 @@ function drawStartScreen() {
 }
 
 function drawPauseMenu() {
-	context.fillStyle = "rgba(0,0,0,0.7)";
-	context.fillRect(0, 0, canvas.width, canvas.height);
+	game.context.fillStyle = "rgba(0,0,0,0.7)";
+	game.context.fillRect(0, 0, game.canvas.width, game.canvas.height);
 
 	drawCenteredText("PAUSED", 180, 40, "yellow");
 	drawCenteredText("Press P to Resume", 230, 24, "white");
@@ -123,348 +146,143 @@ function drawPauseMenu() {
 
 function reset() {
 
-	snake.x = grid * 10;
-	snake.y = grid * 10;
-	snake.cells = [];
-	snake.maxCells = startS;
-	snake.dx = grid;
-	snake.dy = 0;
+	game.snake.x = game.grid * 10;
+	game.snake.y = game.grid * 10;
+	game.snake.cells = [];
+	game.snake.maxCells = game.startS;
+	game.snake.dx = game.grid;
+	game.snake.dy = 0;
 
-	sCount = 0;
-	score = 0;
+	game.sCount = 0;
+	game.score = 0;
 
-	speedOfSnake = 5;
-	originalSpeed = speedOfSnake;
+	game.speedOfSnake = 5;
+	game.originalSpeed = game.speedOfSnake;
 
-	gold = 0;
-	PFgold = 5;
-	Icharge = 0;
-	InvinciC = 5;
-	goldCount = 0;
+	game.gold = 0;
+	game.PFgold = 5;
+	game.Icharge = 0;
+	game.InvinciC = 5;
+	game.goldCount = 0;
 
-	invincible.is = false;
-	invincible.frames = 0;
+	game.invincible.is = false;
+	game.invincible.frames = 0;
 
-	apple.x = getRandomInt(0, canvas.width / grid) * grid;
-	apple.y = getRandomInt(0, canvas.height / grid) * grid;
-
-	goldO.x = getRandomInt(0, canvas.width / grid) * grid;
-	goldO.y = getRandomInt(0, canvas.height / grid) * grid;
-
-	portalIN.x = getRandomInt(0, canvas.width / grid) * grid;
-	portalIN.y = getRandomInt(0, canvas.height / grid) * grid;
-
-	portalOut.x = getRandomInt(0, canvas.width / grid) * grid;
-	portalOut.y = getRandomInt(0, canvas.height / grid) * grid;
-
-	Speeder.x = getRandomInt(0, canvas.width / grid) * grid;
-	Speeder.y = getRandomInt(0, canvas.height / grid) * grid;
-
-	invi.x = getRandomInt(0, canvas.width / grid) * grid;
-	invi.y = getRandomInt(0, canvas.height / grid) * grid;
+	initEntities();
 }
 
 function loop() {
 
 	requestAnimationFrame(loop);
 
-	if (!gameStarted) {
+	if (!game.gameStarted) {
 		drawStartScreen();
 		return;
 	}
 
-	if (paused) {
+	if (game.paused) {
 		drawPauseMenu();
 		return;
 	}
 
-	if (++count < speedOfSnake) {
-		return;
+	if (++game.count < game.speedOfSnake) return;
+	game.count = 0;
+
+	game.context.clearRect(0, 0, game.canvas.width, game.canvas.height);
+
+	game.snake.x += game.snake.dx;
+	game.snake.y += game.snake.dy;
+
+	if (game.snake.x < 0) game.snake.x = game.canvas.width - game.grid;
+	else if (game.snake.x >= game.canvas.width) game.snake.x = 0;
+
+	if (game.snake.y < 0) game.snake.y = game.canvas.height - game.grid;
+	else if (game.snake.y >= game.canvas.height) game.snake.y = 0;
+
+	game.snake.cells.unshift({ x: game.snake.x, y: game.snake.y });
+
+	while (game.snake.cells.length > game.snake.maxCells) {
+		game.snake.cells.pop();
 	}
 
-	count = 0;
+	game.context.fillStyle = 'red';
+	game.context.fillRect(game.apple.x, game.apple.y, game.apple.sx, game.apple.sy);
 
-	context.clearRect(0, 0, canvas.width, canvas.height);
+	game.context.fillStyle = 'green';
 
-	snake.x += snake.dx;
-	snake.y += snake.dy;
+	game.snake.cells.forEach(function (cell, index) {
 
-	if (snake.x < 0) {
-		snake.x = canvas.width - grid;
-	}
-	else if (snake.x >= canvas.width) {
-		snake.x = 0;
-	}
+		game.context.fillRect(cell.x, cell.y, game.snake.sx, game.snake.sy);
 
-	if (snake.y < 0) {
-		snake.y = canvas.height - grid;
-	}
-	else if (snake.y >= canvas.height) {
-		snake.y = 0;
-	}
+		if (cell.x === game.apple.x && cell.y === game.apple.y) {
+			game.snake.maxCells++;
+			game.score++;
+			game.sCount++;
 
-	snake.cells.unshift({
-		x: snake.x,
-		y: snake.y
-	});
+			game.apple.x = getRandomInt(0, game.canvas.width / game.grid) * game.grid;
+			game.apple.y = getRandomInt(0, game.canvas.height / game.grid) * game.grid;
+		}
 
-	if (snake.maxCells > MAX_SNAKE_LENGTH) {
-		snake.maxCells = MAX_SNAKE_LENGTH;
-	}
-
-	while (snake.cells.length > snake.maxCells) {
-		snake.cells.pop();
-	}
-
-	context.fillStyle = 'red';
-	context.fillRect(apple.x, apple.y, apple.sx, apple.sy);
-
-	if (goldCount >= InvinciC) {
-		context.fillStyle = 'orange';
-		context.fillRect(invi.x, invi.y, grid - 1, grid - 1);
-	}
-
-	if (sCount >= PFgold) {
-		context.fillStyle = 'yellow';
-		context.fillRect(goldO.x, goldO.y, grid - 1, grid - 1);
-	}
-
-	if (score > 10) {
-
-		context.fillStyle = PortalColorIn[getRandomInt(0, 4)];
-		context.fillRect(portalIN.x, portalIN.y, grid - 1, grid - 1);
-
-		context.fillStyle = PortalColorOut[getRandomInt(0, 4)];
-		context.fillRect(portalOut.x, portalOut.y, grid - 1, grid - 1);
-	}
-
-	if (gold >= SpeederCost) {
-
-		context.fillStyle = SpeederColor[getRandomInt(0, 4)];
-		context.fillRect(Speeder.x, Speeder.y, grid - 1, grid - 1);
-	}
-
-	context.fillStyle = 'green';
-
-	snake.cells.forEach(function (cell, index) {
-
-		context.fillRect(cell.x, cell.y, snake.sx, snake.sy);
-
-		if (
-			cell.x === apple.x &&
-			cell.y === apple.y
-		) {
-
-			if (snake.maxCells < MAX_SNAKE_LENGTH) {
-				snake.maxCells++;
+		for (var i = index + 1; i < game.snake.cells.length; i++) {
+			if (
+				cell.x === game.snake.cells[i].x &&
+				cell.y === game.snake.cells[i].y &&
+				!game.invincible.is
+			) {
+				reset();
 			}
-
-			score++;
-			sCount++;
-
-			apple.x = getRandomInt(0, canvas.width / grid) * grid;
-			apple.y = getRandomInt(0, canvas.height / grid) * grid;
-		}
-
-		if (score > 10) {
-
-			if (cell.x === portalIN.x && cell.y === portalIN.y) {
-
-				snake.x = portalOut.x;
-				snake.y = portalOut.y;
-
-				snake.dx *= -1;
-				snake.dy *= -1;
-
-				portalIN.x = getRandomInt(0, canvas.width / grid) * grid;
-				portalIN.y = getRandomInt(0, canvas.height / grid) * grid;
-			}
-
-			if (cell.x === portalOut.x && cell.y === portalOut.y) {
-
-				snake.x = portalIN.x;
-				snake.y = portalIN.y;
-
-				snake.dx *= -1;
-				snake.dy *= -1;
-
-				portalOut.x = getRandomInt(0, canvas.width / grid) * grid;
-				portalOut.y = getRandomInt(0, canvas.height / grid) * grid;
-			}
-		}
-
-		if (gold >= SpeederCost) {
-
-			if (cell.x === Speeder.x && cell.y === Speeder.y) {
-
-				gold = Math.abs(gold - SpeederCost);
-
-				if (originalSpeed != speedOfSnake) {
-					speedOfSnake -= 3;
-				}
-				else {
-					speedOfSnake += 3;
-				}
-
-				if (speedOfSnake < 1) {
-					speedOfSnake = 1;
-				}
-
-				Speeder.x = getRandomInt(0, canvas.width / grid) * grid;
-				Speeder.y = getRandomInt(0, canvas.height / grid) * grid;
-			}
-		}
-
-		if (sCount >= PFgold) {
-
-			if (cell.x === goldO.x && cell.y === goldO.y) {
-
-				sCount -= PFgold;
-
-				goldCount++;
-				gold++;
-
-				var checkRTF = getRandomInt(0, 10);
-
-				if (checkRTF == 5) {
-
-					snake.maxCells *= 2;
-
-					if (snake.maxCells > MAX_SNAKE_LENGTH) {
-						snake.maxCells = MAX_SNAKE_LENGTH;
-					}
-
-					score *= 2;
-				}
-				else {
-
-					snake.maxCells += 2;
-
-					if (snake.maxCells > MAX_SNAKE_LENGTH) {
-						snake.maxCells = MAX_SNAKE_LENGTH;
-					}
-
-					score += 2;
-				}
-
-				goldO.x = getRandomInt(0, canvas.width / grid) * grid;
-				goldO.y = getRandomInt(0, canvas.height / grid) * grid;
-			}
-		}
-
-		if (
-			cell.x === invi.x &&
-			cell.y === invi.y &&
-			goldCount >= InvinciC
-		) {
-
-			Icharge += getRandomInt(1, 5);
-
-			goldCount -= InvinciC;
-
-			invi.x = getRandomInt(0, canvas.width / grid) * grid;
-			invi.y = getRandomInt(0, canvas.height / grid) * grid;
-		}
-
-		for (var i = index + 1; i < snake.cells.length; i++) {
-
-			if (!invincible.is) {
-
-				if (
-					cell.x === snake.cells[i].x &&
-					cell.y === snake.cells[i].y
-				) {
-
-					reset(false);
-				}
-			}
-		}
-
-		if (invincible.is) {
-			invincible.frames++;
-		}
-
-		if (invincible.frames > ((10 * speedOfSnake) * snake.cells.length)) {
-
-			invincible.is = false;
-			invincible.frames = 0;
 		}
 	});
 
 	document.getElementById("ScoreBoard").innerHTML =
-		" Score: " + score +
-		" Gold: " + goldCount
-
-	if (Icharge > 0) {
-
-		document.getElementById("ScoreBoard").innerHTML += " Charges: ";
-
-		for (var i = 0; i < Icharge; i++) {
-			document.getElementById("ScoreBoard").innerHTML += "|";
-		}
-	}
-
-	if (invincible.is) {
-
-		document.getElementById("ScoreBoard").innerHTML +=
-			" iframes: " +
-			(((10 * speedOfSnake) * snake.cells.length) - invincible.frames);
-	}
+		" Score: " + game.score +
+		" Gold: " + game.goldCount;
 }
 
 document.addEventListener('keydown', function (e) {
 
-	if (e.which === 13 && !gameStarted) {
-		gameStarted = true;
-		return;
-	}
-
-	if (e.which === 80 && gameStarted) {
-		paused = !paused;
-		return;
-	}
-
-	if (e.which === 82) {
+	if (game.controls.menu.includes(e.key.toLowerCase())) {
+		e.preventDefault();
+		game.gameStarted = false;
+		game.paused = false;
 		reset();
 		return;
 	}
 
-	if (paused || !gameStarted) {
+	if (game.controls.start.includes(e.key.toLowerCase()) && !game.gameStarted) {
+		game.gameStarted = true;
 		return;
 	}
 
-	if (e.which === 37 && snake.dx === 0) {
-		snake.dx = -grid;
-		snake.dy = 0;
+	if (game.controls.pause.includes(e.key.toLowerCase())) {
+		game.paused = !game.paused;
+		return;
 	}
 
-	else if (e.which === 38 && snake.dy === 0) {
-		snake.dy = -grid;
-		snake.dx = 0;
+	if (game.controls.reset.includes(e.key.toLowerCase())) {
+		reset();
+		return;
 	}
 
-	else if (e.which === 39 && snake.dx === 0) {
-		snake.dx = grid;
-		snake.dy = 0;
+	if (game.paused || !game.gameStarted) return;
+
+	if (game.controls.left.includes(e.key.toLowerCase()) && game.snake.dx === 0) {
+		game.snake.dx = -game.grid;
+		game.snake.dy = 0;
 	}
-
-	else if (e.which === 40 && snake.dy === 0) {
-		snake.dy = grid;
-		snake.dx = 0;
+	else if (game.controls.up.includes(e.key.toLowerCase()) && game.snake.dy === 0) {
+		game.snake.dy = -game.grid;
+		game.snake.dx = 0;
 	}
-
-	else if (
-		e.which === 32 &&
-		invincible.is === false &&
-		Icharge > 0 &&
-		goldCount >= InvinciC
-	) {
-
-		Icharge--;
-
-		invincible.frames = 10;
-		invincible.is = true;
+	else if (game.controls.right.includes(e.key.toLowerCase()) && game.snake.dx === 0) {
+		game.snake.dx = game.grid;
+		game.snake.dy = 0;
+	}
+	else if (game.controls.down.includes(e.key.toLowerCase()) && game.snake.dy === 0) {
+		game.snake.dy = game.grid;
+		game.snake.dx = 0;
 	}
 });
 
+initEntities();
 requestAnimationFrame(loop);
