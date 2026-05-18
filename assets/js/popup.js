@@ -110,6 +110,8 @@ function drawStartScreen() {
 	drawCenteredText("Arrow Keys = Move", 250, 18, "gray");
 	drawCenteredText("P = Pause", 280, 18, "gray");
 	drawCenteredText("Space = Invincible", 310, 18, "gray");
+	drawCenteredText("K = Save", 340, 18, "gray");
+	drawCenteredText("L = Load", 370, 18, "gray");
 }
 
 function drawPauseMenu() {
@@ -121,7 +123,92 @@ function drawPauseMenu() {
 	drawCenteredText("Press R to Restart", 270, 24, "white");
 }
 
-function reset() {
+function saveGame() {
+
+	chrome.storage.local.set({
+		saveData: {
+			gameStarted: gameStarted,
+			paused: paused,
+
+			start: start,
+			SpeederCost: SpeederCost,
+			PFgold: PFgold,
+			InvinciC: InvinciC,
+			Icharge: Icharge,
+			score: score,
+			sCount: sCount,
+
+			startS: startS,
+
+			speedOfSnake: speedOfSnake,
+			originalSpeed: originalSpeed,
+
+			gold: gold,
+			goldCount: goldCount,
+
+			count: count,
+
+			snake: snake,
+			invincible: invincible,
+
+			apple: apple,
+			goldO: goldO,
+			portalIN: portalIN,
+			portalOut: portalOut,
+			Speeder: Speeder,
+			invi: invi
+		}
+	});
+}
+
+function loadGame() {
+
+	chrome.storage.local.get(['saveData'], function (data) {
+
+		if (!data.saveData) {
+			return;
+		}
+
+		var save = data.saveData;
+
+		gameStarted = save.gameStarted;
+		paused = save.paused;
+
+		start = save.start;
+		SpeederCost = save.SpeederCost;
+		PFgold = save.PFgold;
+		InvinciC = save.InvinciC;
+		Icharge = save.Icharge;
+		score = save.score;
+		sCount = save.sCount;
+
+		startS = save.startS;
+
+		speedOfSnake = save.speedOfSnake;
+		originalSpeed = save.originalSpeed;
+
+		gold = save.gold;
+		goldCount = save.goldCount;
+
+		count = save.count;
+
+		snake = save.snake;
+		invincible = save.invincible;
+
+		apple = save.apple;
+		goldO = save.goldO;
+		portalIN = save.portalIN;
+		portalOut = save.portalOut;
+		Speeder = save.Speeder;
+		invi = save.invi;
+	});
+}
+
+function deleteSave() {
+	chrome.storage.local.remove(['saveData']);
+}
+
+function reset(deleteSavedGame = true) {
 
 	snake.x = grid * 10;
 	snake.y = grid * 10;
@@ -162,6 +249,10 @@ function reset() {
 
 	invi.x = getRandomInt(0, canvas.width / grid) * grid;
 	invi.y = getRandomInt(0, canvas.height / grid) * grid;
+
+	if (deleteSavedGame) {
+		deleteSave();
+	}
 }
 
 function loop() {
@@ -229,7 +320,7 @@ function loop() {
 		context.fillRect(goldO.x, goldO.y, grid - 1, grid - 1);
 	}
 
-	if (score > 5) {
+	if (score > 10) {
 
 		context.fillStyle = PortalColorIn[getRandomInt(0, 4)];
 		context.fillRect(portalIN.x, portalIN.y, grid - 1, grid - 1);
@@ -273,8 +364,8 @@ function loop() {
 				snake.x = portalOut.x;
 				snake.y = portalOut.y;
 
-				snake.dx *= 1;
-				snake.dy *= 1;
+				snake.dx *= -1;
+				snake.dy *= -1;
 
 				portalIN.x = getRandomInt(0, canvas.width / grid) * grid;
 				portalIN.y = getRandomInt(0, canvas.height / grid) * grid;
@@ -285,11 +376,11 @@ function loop() {
 				snake.x = portalIN.x;
 				snake.y = portalIN.y;
 
-				snake.dx *= 1;
-				snake.dy *= 1;
+				snake.dx *= -1;
+				snake.dy *= -1;
 
 				portalOut.x = getRandomInt(0, canvas.width / grid) * grid;
-				portalOut.y = getRandomInt(0, canvas.height / grid) * grid;4
+				portalOut.y = getRandomInt(0, canvas.height / grid) * grid;
 			}
 		}
 
@@ -410,6 +501,8 @@ function loop() {
 			" iframes: " +
 			(((10 * speedOfSnake) * snake.cells.length) - invincible.frames);
 	}
+
+	saveGame();
 }
 
 document.addEventListener('keydown', function (e) {
@@ -429,14 +522,17 @@ document.addEventListener('keydown', function (e) {
 		return;
 	}
 
-	if (paused || !gameStarted) {
+	if (e.which === 75) {
+		saveGame();
 		return;
 	}
 
-	if (e.which === 77) { // ESC key
-		gameStarted = false;
-		paused = false;
-		reset();
+	if (e.which === 76) {
+		loadGame();
+		return;
+	}
+
+	if (paused || !gameStarted) {
 		return;
 	}
 
@@ -473,4 +569,7 @@ document.addEventListener('keydown', function (e) {
 		invincible.is = true;
 	}
 });
+
+loadGame();
+
 requestAnimationFrame(loop);
