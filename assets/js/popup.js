@@ -1,71 +1,75 @@
-var game = {
-	canvas: document.getElementById('game'),
-	context: document.getElementById('game').getContext('2d'),
+var game = createDefaultGame();
 
-	gameStarted: false,
-	paused: false,
+function createDefaultGame() {
+	return {
+		canvas: document.getElementById('game'),
+		context: document.getElementById('game').getContext('2d'),
 
-	start: false,
-	SpeederCost: 2,
-	PFgold: 5,
-	InvinciC: 10,
-	Icharge: 0,
-	score: 0,
-	sCount: 0,
+		gameStarted: false,
+		paused: false,
 
-	startS: 5,
+		start: false,
+		SpeederCost: 2,
+		PFgold: 5,
+		InvinciC: 10,
+		Icharge: 0,
+		score: 0,
+		sCount: 0,
 
-	speedOfSnake: 5,
-	originalSpeed: 5,
+		startS: 5,
 
-	gold: 0,
-	goldCount: 0,
+		speedOfSnake: 5,
+		originalSpeed: 5,
 
-	grid: 16,
-	count: 0,
+		gold: 0,
+		goldCount: 0,
 
-	MAX_SNAKE_LENGTH: 0,
+		grid: 16,
+		count: 0,
 
-	PortalColorIn: ['blue', 'purple', 'cyan', 'gray'],
-	PortalColorOut: ['orange', 'purple', 'cyan', 'gray'],
-	SpeederColor: ['black', 'white', 'black', 'white'],
+		MAX_SNAKE_LENGTH: 0,
 
-	snake: {
-		x: 160,
-		y: 160,
-		sx: 15,
-		sy: 15,
-		dx: 16,
-		dy: 0,
-		cells: [],
-		maxCells: 5
-	},
+		PortalColorIn: ['blue', 'purple', 'cyan', 'gray'],
+		PortalColorOut: ['orange', 'cyan', 'purple', 'grey'],
+		SpeederColor: ['black', 'white', 'black', 'white'],
 
-	invincible: {
-		is: false,
-		frames: 0
-	},
+		snake: {
+			x: 160,
+			y: 160,
+			sx: 15,
+			sy: 15,
+			dx: 16,
+			dy: 0,
+			cells: [],
+			maxCells: 5
+		},
 
-	apple: {},
-	goldO: {},
-	portalIN: {},
-	portalOut: {},
-	Speeder: {},
-	invi: {},
+		invincible: {
+			is: false,
+			frames: 0
+		},
 
-	controls: {
-		menu: ['escape'],
-		start: ['enter'],
-		pause: ['p'],
-		reset: ['r'],
-		left: ['arrowleft', 'a'],
-		up: ['arrowup', 'w'],
-		right: ['arrowright', 'd'],
-		down: ['arrowdown', 's']
-	}
-};
+		apple: {},
+		goldO: {},
+		portalIN: {},
+		portalOut: {},
+		Speeder: {},
+		invi: {},
 
-// derived constant
+		controls: {
+			menu: ['escape'],
+			start: ['enter'],
+			pause: ['p'],
+			reset: ['r'],
+			left: ['arrowleft', 'a'],
+			up: ['arrowup', 'w'],
+			right: ['arrowright', 'd'],
+			down: ['arrowdown', 's']
+		}
+	};
+}
+
+// derived constant)
 game.MAX_SNAKE_LENGTH = (game.canvas.width / game.grid) * (game.canvas.height / game.grid);
 
 // helpers
@@ -145,30 +149,12 @@ function drawPauseMenu() {
 }
 
 function reset() {
-
-	game.snake.x = game.grid * 10;
-	game.snake.y = game.grid * 10;
-	game.snake.cells = [];
-	game.snake.maxCells = game.startS;
-	game.snake.dx = game.grid;
-	game.snake.dy = 0;
-
-	game.sCount = 0;
-	game.score = 0;
-
-	game.speedOfSnake = 5;
-	game.originalSpeed = game.speedOfSnake;
-
-	game.gold = 0;
-	game.PFgold = 5;
-	game.Icharge = 0;
-	game.InvinciC = 5;
-	game.goldCount = 0;
-
-	game.invincible.is = false;
-	game.invincible.frames = 0;
-
+	game = createDefaultGame();
 	initEntities();
+}
+
+function deepCopy(obj) {
+	return JSON.parse(JSON.stringify(obj));
 }
 
 function loop() {
@@ -260,7 +246,9 @@ document.addEventListener('keydown', function (e) {
 	}
 
 	if (game.controls.reset.includes(e.key.toLowerCase())) {
+		var gameStarted = game.gameStarted;
 		reset();
+		game.gameStarted = gameStarted;
 		return;
 	}
 
