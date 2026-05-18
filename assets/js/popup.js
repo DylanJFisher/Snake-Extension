@@ -110,6 +110,8 @@ function drawStartScreen() {
 	drawCenteredText("Arrow Keys = Move", 250, 18, "gray");
 	drawCenteredText("P = Pause", 280, 18, "gray");
 	drawCenteredText("Space = Invincible", 310, 18, "gray");
+	drawCenteredText("K = Save", 340, 18, "gray");
+	drawCenteredText("L = Load", 370, 18, "gray");
 }
 
 function drawPauseMenu() {
@@ -121,7 +123,93 @@ function drawPauseMenu() {
 	drawCenteredText("Press R to Restart", 270, 24, "white");
 }
 
-function reset() {
+function saveGame() {
+
+	chrome.storage.local.set({
+		saveData: {
+			gameStarted: gameStarted,
+			paused: paused,
+
+			start: start,
+			SpeederCost: SpeederCost,
+			PFgold: PFgold,
+			InvinciC: InvinciC,
+			Icharge: Icharge,
+			score: score,
+			sCount: sCount,
+
+			startS: startS,
+
+			speedOfSnake: speedOfSnake,
+			originalSpeed: originalSpeed,
+
+			gold: gold,
+			goldCount: goldCount,
+
+			count: count,
+
+			snake: snake,
+			invincible: invincible,
+
+			apple: apple,
+			goldO: goldO,
+			portalIN: portalIN,
+			portalOut: portalOut,
+			Speeder: Speeder,
+			invi: invi
+		}
+	});
+}
+
+function loadGame() {
+
+	chrome.storage.local.get(['saveData'], function (data) {
+
+		if (!data.saveData) {
+			return;
+		}
+
+		var save = data.saveData;
+
+		gameStarted = save.gameStarted;
+		paused = save.paused;
+
+		start = save.start;
+		SpeederCost = save.SpeederCost;
+		PFgold = save.PFgold;
+		InvinciC = save.InvinciC;
+		Icharge = save.Icharge;
+		score = save.score;
+		sCount = save.sCount;
+
+		startS = save.startS;
+
+		speedOfSnake = save.speedOfSnake;
+		originalSpeed = save.originalSpeed;
+
+		gold = save.gold;
+		goldCount = save.goldCount;
+
+		count = save.count;
+
+		snake = save.snake;
+		invincible = save.invincible;
+
+		apple = save.apple;
+		goldO = save.goldO;
+		portalIN = save.portalIN;
+		portalOut = save.portalOut;
+		Speeder = save.Speeder;
+		invi = save.invi;
+	});
+}
+
+function deleteSave() {
+	chrome.storage.local.remove(['saveData']);
+}
+
+function reset(deleteSavedGame = true) {
+
 	snake.x = grid * 10;
 	snake.y = grid * 10;
 	snake.cells = [];
@@ -161,18 +249,21 @@ function reset() {
 
 	invi.x = getRandomInt(0, canvas.width / grid) * grid;
 	invi.y = getRandomInt(0, canvas.height / grid) * grid;
+
+	if (deleteSavedGame) {
+		deleteSave();
+	}
 }
 
 function loop() {
+
 	requestAnimationFrame(loop);
 
-	// START SCREEN
 	if (!gameStarted) {
 		drawStartScreen();
 		return;
 	}
 
-	// PAUSE MENU
 	if (paused) {
 		drawPauseMenu();
 		return;
@@ -191,13 +282,15 @@ function loop() {
 
 	if (snake.x < 0) {
 		snake.x = canvas.width - grid;
-	} else if (snake.x >= canvas.width) {
+	}
+	else if (snake.x >= canvas.width) {
 		snake.x = 0;
 	}
 
 	if (snake.y < 0) {
 		snake.y = canvas.height - grid;
-	} else if (snake.y >= canvas.height) {
+	}
+	else if (snake.y >= canvas.height) {
 		snake.y = 0;
 	}
 
@@ -214,24 +307,21 @@ function loop() {
 		snake.cells.pop();
 	}
 
-	// APPLE
 	context.fillStyle = 'red';
 	context.fillRect(apple.x, apple.y, apple.sx, apple.sy);
 
-	// INVINCIBLE PICKUP
 	if (goldCount >= InvinciC) {
 		context.fillStyle = 'orange';
 		context.fillRect(invi.x, invi.y, grid - 1, grid - 1);
 	}
 
-	// GOLD
 	if (sCount >= PFgold) {
 		context.fillStyle = 'yellow';
 		context.fillRect(goldO.x, goldO.y, grid - 1, grid - 1);
 	}
 
-	// PORTALS
 	if (score > 10) {
+
 		context.fillStyle = PortalColorIn[getRandomInt(0, 4)];
 		context.fillRect(portalIN.x, portalIN.y, grid - 1, grid - 1);
 
@@ -239,20 +329,18 @@ function loop() {
 		context.fillRect(portalOut.x, portalOut.y, grid - 1, grid - 1);
 	}
 
-	// SPEEDER
 	if (gold >= SpeederCost) {
+
 		context.fillStyle = SpeederColor[getRandomInt(0, 4)];
 		context.fillRect(Speeder.x, Speeder.y, grid - 1, grid - 1);
 	}
 
-	// DRAW SNAKE
 	context.fillStyle = 'green';
 
 	snake.cells.forEach(function (cell, index) {
 
 		context.fillRect(cell.x, cell.y, snake.sx, snake.sy);
 
-		// EAT APPLE
 		if (
 			cell.x === apple.x &&
 			cell.y === apple.y
@@ -269,7 +357,6 @@ function loop() {
 			apple.y = getRandomInt(0, canvas.height / grid) * grid;
 		}
 
-		// PORTALS
 		if (score > 10) {
 
 			if (cell.x === portalIN.x && cell.y === portalIN.y) {
@@ -297,7 +384,6 @@ function loop() {
 			}
 		}
 
-		// SPEEDER
 		if (gold >= SpeederCost) {
 
 			if (cell.x === Speeder.x && cell.y === Speeder.y) {
@@ -306,7 +392,8 @@ function loop() {
 
 				if (originalSpeed != speedOfSnake) {
 					speedOfSnake -= 3;
-				} else {
+				}
+				else {
 					speedOfSnake += 3;
 				}
 
@@ -319,7 +406,6 @@ function loop() {
 			}
 		}
 
-		// GOLD PICKUP
 		if (sCount >= PFgold) {
 
 			if (cell.x === goldO.x && cell.y === goldO.y) {
@@ -340,8 +426,8 @@ function loop() {
 					}
 
 					score *= 2;
-
-				} else {
+				}
+				else {
 
 					snake.maxCells += 2;
 
@@ -357,7 +443,6 @@ function loop() {
 			}
 		}
 
-		// INVINCIBLE PICKUP
 		if (
 			cell.x === invi.x &&
 			cell.y === invi.y &&
@@ -372,7 +457,6 @@ function loop() {
 			invi.y = getRandomInt(0, canvas.height / grid) * grid;
 		}
 
-		// SELF COLLISION
 		for (var i = index + 1; i < snake.cells.length; i++) {
 
 			if (!invincible.is) {
@@ -381,12 +465,12 @@ function loop() {
 					cell.x === snake.cells[i].x &&
 					cell.y === snake.cells[i].y
 				) {
-					reset();
+
+					reset(false);
 				}
 			}
 		}
 
-		// INVINCIBILITY TIMER
 		if (invincible.is) {
 			invincible.frames++;
 		}
@@ -419,59 +503,61 @@ function loop() {
 			" iframes: " +
 			(((10 * speedOfSnake) * snake.cells.length) - invincible.frames);
 	}
+
+	saveGame();
 }
 
-// CONTROLS
 document.addEventListener('keydown', function (e) {
 
-	// ENTER = START
 	if (e.which === 13 && !gameStarted) {
 		gameStarted = true;
 		return;
 	}
 
-	// P = PAUSE
 	if (e.which === 80 && gameStarted) {
 		paused = !paused;
 		return;
 	}
 
-	// R = RESET
 	if (e.which === 82) {
 		reset();
 		return;
 	}
 
-	// BLOCK MOVEMENT WHILE PAUSED
+	if (e.which === 75) {
+		saveGame();
+		return;
+	}
+
+	if (e.which === 76) {
+		loadGame();
+		return;
+	}
+
 	if (paused || !gameStarted) {
 		return;
 	}
 
-	// LEFT
 	if (e.which === 37 && snake.dx === 0) {
 		snake.dx = -grid;
 		snake.dy = 0;
 	}
 
-	// UP
 	else if (e.which === 38 && snake.dy === 0) {
 		snake.dy = -grid;
 		snake.dx = 0;
 	}
 
-	// RIGHT
 	else if (e.which === 39 && snake.dx === 0) {
 		snake.dx = grid;
 		snake.dy = 0;
 	}
 
-	// DOWN
 	else if (e.which === 40 && snake.dy === 0) {
 		snake.dy = grid;
 		snake.dx = 0;
 	}
 
-	// SPACE = INVINCIBLE
 	else if (
 		e.which === 32 &&
 		invincible.is === false &&
@@ -486,5 +572,6 @@ document.addEventListener('keydown', function (e) {
 	}
 });
 
-// START GAME LOOP
+loadGame();
+
 requestAnimationFrame(loop);
