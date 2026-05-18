@@ -134,9 +134,10 @@ function drawStartScreen() {
 
 	drawCenteredText("SNAKE", 140, 40, "lime");
 	drawCenteredText("Press ENTER to Start", 210, 24, "white");
-	drawCenteredText("Arrow Keys = Move", 250, 18, "gray");
+	drawCenteredText("Arrow Keys / WASD = Move", 250, 18, "gray");
 	drawCenteredText("P = Pause", 280, 18, "gray");
-	drawCenteredText("Space = Invincible", 310, 18, "gray");
+	drawCenteredText("R = Reset", 310, 18, "gray");
+	drawCenteredText("Space = Use Invincible Charge", 340, 18, "gray");
 }
 
 function drawPauseMenu() {
