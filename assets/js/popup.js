@@ -484,7 +484,7 @@ function loop() {
 
 	document.getElementById("ScoreBoard").innerHTML =
 		" Score: " + score +
-		" gold: " + goldCount
+		" Gold: " + goldCount
 
 	if (Icharge > 0) {
 
