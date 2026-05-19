@@ -1,5 +1,7 @@
 game = createDefaultGame();
 
+const scoreBoard = document.getElementById("ScoreBoard");
+
 function createDefaultGame() {
 	const canvas = document.getElementById('game');
 
@@ -132,8 +134,6 @@ function createDefaultGame() {
 		invince: ['space']
 	}
 
-	game.objects = [game.apple, game.goleO, game.portalIn, game.portalOut, game.Speeder, game.invi]
-
 	return game;
 }
 
@@ -182,9 +182,11 @@ function drawPauseMenu() {
 }
 
 function reset() {
-	var started = game.gameStarted;
+	const started = game.gameStarted;
+	const paused = game.paused;
 	game = createDefaultGame();
 	game.gameStarted = started;
+	game.paused = paused;
 }
 
 function collide(obj1, obj2) {
@@ -388,22 +390,22 @@ function loop() {
 		}
 	});
 
-	document.getElementById("ScoreBoard").innerHTML =
+	scoreBoard.innerHTML =
 		" Score: " + game.score +
 		" Gold: " + game.goldCount
 
 	if (game.Icharge > 0) {
 
-		document.getElementById("ScoreBoard").innerHTML += " Charges: ";
+		scoreBoard.innerHTML += " Charges: ";
 
 		for (var i = 0; i < game.Icharge; i++) {
-			document.getElementById("ScoreBoard").innerHTML += "|";
+			scoreBoard.innerHTML += "|";
 		}
 	}
 
 	if (game.invincible.is) {
 
-		document.getElementById("ScoreBoard").innerHTML +=
+		scoreBoard.innerHTML +=
 			" iframes: " +
 			(((10 * game.speedOfSnake) * game.snake.cells.length) - game.invincible.frames);
 	}
