@@ -363,16 +363,15 @@ function loop() {
 
 			game.goldCount -= game.InvinciC;
 
-			game.invi.x = getRandomInt(0, canvas.width / game.grid) * game.grid;
-			game.invi.y = getRandomInt(0, canvas.height / game.grid) * game.grid;
+			game.invi.x = getRandomInt(0, game.canvas.width / game.grid) * game.grid;
+			game.invi.y = getRandomInt(0, game.canvas.height / game.grid) * game.grid;
 		}
 
 		for (var i = index + 1; i < game.snake.cells.length; i++) {
 
 			if (!game.invincible.is) {
 
-				if (collide(cell, game.snake.cells[i])
-				) {
+				if (collide(cell, game.snake.cells[i])) {
 					reset();
 				}
 			}
