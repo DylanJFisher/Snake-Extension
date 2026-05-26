@@ -184,8 +184,6 @@ function createDefaultGame() {
 
 		directionChanged: false,
 
-		portalLock: 0,
-
 		PortalColorIn: ['blue', 'purple', 'cyan', 'gray'],
 		PortalColorOut: ['orange', 'purple', 'cyan', 'gray']
 	};
@@ -329,54 +327,9 @@ function createDefaultGame() {
 	return state;
 }
 
-function stringedGame() {
-	const saveData = JSON.parse(JSON.stringify(gameState));
-	delete saveData.canvas;
-	delete saveData.context;
-	delete saveData.savedFrame;
-	return JSON.stringify(gameState);
-}
-
-function setGameFromString(string) {
-	const loadedData = JSON.parse(string);
-	const newGame = createDefaultGame();
-	Object.assign(newGame, loadedData);
-	gameState = newGame;
-}
-
-function saveGame(index) {
-	saveToIndexedList("SnakeGameFileSaves", index, stringedGame());
-}
-
-function loadGame(index) {
-	loadFromIndexedList("SnakeGameFileSaves", index, function (data) {
-		if (data != null) setGameFromString(data);
-	});
-}
-
-function saveToIndexedList(storageKey, index, data) {
-	chrome.storage.local.get([storageKey], function (result) {
-		let list = Array.isArray(result[storageKey]) ? result[storageKey] : [];
-
-		if (typeof index === "number" && index >= 0) {
-			list[index] = data;
-		} else {
-			list.push(data);
-		}
-
-		chrome.storage.local.set({ [storageKey]: list });
-	});
-}
-
-function loadFromIndexedList(storageKey, index, callback) {
-	chrome.storage.local.get([storageKey], function (result) {
-		const list = Array.isArray(result[storageKey]) ? result[storageKey] : [];
-
-		if (index == null) return callback(list);
-		if (typeof index === "number" && index >= 0 && index < list.length) {
-			callback(list[index]);
-		} else callback(null);
-	});
+function getMousePosition(canvas, event) {
+	let rect = canvas.getBoundingClientRect();
+	return { x: event.clientX - canvas.getBoundingClientRect().left, y: event.clientY - canvas.getBoundingClientRect().top };
 }
 
 function getRandomInt(min, max) {
@@ -441,10 +394,6 @@ function loop() {
 		gameState.invincible.is = false;
 	}
 
-	if (gameState.portalLock > 0) {
-		gameState.portalLock--;
-	}
-
 	if (!gameState.gameStarted) return drawStartScreen();
 	if (gameState.paused) return drawPauseMenu();
 
@@ -482,12 +431,21 @@ function loop() {
 		(gameState.invincible.is
 		? " | ACTIVE (" + ((gameState.invincible.endTime - performance.now()) / 1000).toFixed(1) + "s)"
 			: "");
+	
+	
 }
 
 function gameControlsTest(name, ...input) {
 	if (!gameState.controls?.[name]) return false;
 	return input.some(i => gameState.controls[name].includes(String(i).toLowerCase()));
 }
+
+document.addEventListener('mousedown', function (e){
+	if(!gameState.gameStarted){
+		gameState.gameStarted = true;
+		return;
+	}
+})
 
 document.addEventListener('keydown', function (e) {
 	if (gameControlsTest('exit', e.which, e.key, e.code) && gameState.gameStarted) {
@@ -530,15 +488,12 @@ document.addEventListener('keydown', function (e) {
 		gameState.snake.dy = gameState.grid;
 		gameState.snake.dx = 0;
 		gameState.directionChanged = true;
-	} else if (
-		gameControlsTest('invincible', e.which, e.key, e.code) &&
-		!gameState.invincible.is &&
-		gameState.invincibilityCharges > 0
-	) {
+	} else if (gameControlsTest('invincible', e.which, e.key, e.code) && !gameState.invincible.is && gameState.invincibilityCharges > 0) {
 		gameState.invincibilityCharges--;
 		gameState.invincible.is = true;
 		gameState.invincible.endTime = performance.now() + gameState.invincibilityDuration * 1000;
 	}
+
 });
 
 requestAnimationFrame(loop);
