@@ -123,6 +123,7 @@ class Collectable {
 	}
 }
 
+
 let gameState = createDefaultGame();
 
 const scoreBoardElement = document.getElementById("ScoreBoard");
@@ -169,7 +170,7 @@ function createDefaultGame() {
 		goldSpawnScoreThreshold: 5,
 		goldSpawnProgress: 0,
 
-		invincibilityCost: 2,
+		invincibilityCost: 5,
 		invincibilityCharges: 0,
 		invincibilityDuration: 5,
 
